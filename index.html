@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+    <title>倒计时</title>
+    <script src="//unpkg.com/alpinejs"
+        defer></script>
+    <link rel="stylesheet"
+        href="style.css">
+
+</head>
+
+<body>
+
+    <div x-data="{countdownList: [], userInput: '', loop: true}"
+        class="body-container">
+
+        <div class="countdown-setup">
+            <form @submit.prevent>
+                <input x-model="userInput"
+                    placeholder="设置倒计时时间（秒）"
+                    type="number"
+                    required="required">
+                <button
+                    @click="if(userInput>0){countdownList.push({time: userInput, completed: 0, color: randomWarmColor(1)});}">添加</button>
+            </form>
+        </div>
+
+        <div class="countdown-list">
+            <template x-for="countdownItem in countdownList">
+                <div class="countdown-item">
+
+                    <div class="countdown-process">
+                        <span
+                            :style="{'background-color': countdownItem.color, 'transform': `translateX(-${countdownItem.completed*100}%)`}"></span>
+                    </div>
+                    <span
+                        x-text="Math.round(countdownItem.time*(1-countdownItem.completed))"></span>
+                    <button
+                        @click="countdownList = countdownList.filter((currCountdownItem) => currCountdownItem != countdownItem)">删除</button>
+                </div>
+            </template>
+        </div>
+
+        <div class="countdown-control">
+            <button @click="loop = !loop"
+                :style="{'background-color': loop?'red':'white', 'color': loop?'white':'black'}">循环</button>
+            <button @click="startCountdownList(countdownList, loop);">开始</button>
+            <button @click="stop(countdownList);">停止</button>
+        </div>
+
+        <audio id="audio"
+            src="ring.mp3"
+            hidden="true"></audio>
+
+    </div>
+
+    <script>
+        var timer = 0;
+        // 带校准的倒计时，Source: https://juejin.cn/post/6844903700247363592
+        function startCountdownList(countdownList, loop) {
+            stop(countdownList);
+            let index = 0;
+            let countIndex = 1;
+
+            const timeout = 1000;
+            let startTime = new Date().getTime();
+            if (countdownList.length > 0)
+                countdown(timeout);
+
+            function countdown(interval) {
+                
+                timer = setTimeout(() => {
+                    const endTime = new Date().getTime();
+                    // 偏差值 
+                    const deviation = endTime - (startTime + countIndex * timeout);
+
+                    countIndex++;
+                    countdownList[index].completed = (countIndex - 1) / countdownList[index].time
+
+                    if (countIndex > countdownList[index].time) {
+                        playAudio();
+                        index++;
+                        countIndex = 1;
+                        startTime = new Date().getTime();
+                        if (index < countdownList.length) {
+                            countdown(timeout - deviation);
+                        }
+                        else {
+                            clearCompleted(countdownList);
+                            if (loop) {
+                                index = 0;
+                                countdown(timeout - deviation);
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                    }
+                    else {
+                        countdown(timeout - deviation);
+                    }
+                }, interval)
+            }
+        }
+
+        function stop(countdownList) {
+            if (timer) {
+                clearTimeout(timer);
+                timer = 0;
+                clearCompleted(countdownList);
+            }
+        }
+
+        function clearCompleted(countdownList) {
+            countdownList.forEach(element => {
+                element.completed = 0;
+            });
+        }
+
+        // 获取随机暖色，https://juejin.cn/post/7084481159710638116
+        function randomWarmColor(alpha) {
+            const h = getRandomNum(0, 230);
+            const s = '80%';
+            const l = '80%';
+            return `hsla(${h},${s},${l},${alpha})`;
+        }
+
+        function getRandomNum(min, max) {
+            let result;
+            if (min <= max) {
+                result = Math.floor(Math.random() * (max - min + 1) + min);
+            } else {
+                result = Math.floor(Math.random() * (min - max + 1) + max);
+            }
+            return result;
+        }
+
+        function playAudio() {
+            const audio = document.getElementById("audio");
+            audio.currentTime = 0;
+            audio.play();
+        }
+    </script>
+</body>
+
+</html>
