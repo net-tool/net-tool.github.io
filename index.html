@@ -14,7 +14,7 @@
 
 <body>
 
-    <div x-data="{countdownList: [], userInput: '', loop: true}"
+    <div x-data="{countdownList: [], userInput: '', loop: 0}"
         class="body-container">
 
         <div class="countdown-setup">
@@ -36,8 +36,7 @@
                         <span
                             :style="{'background-color': countdownItem.color, 'transform': `translateX(-${countdownItem.completed*100}%)`}"></span>
                     </div>
-                    <span
-                        x-text="Math.round(countdownItem.time*(1-countdownItem.completed))"></span>
+                    <span x-text="Math.round(countdownItem.time*(1-countdownItem.completed))"></span>
                     <button
                         @click="countdownList = countdownList.filter((currCountdownItem) => currCountdownItem != countdownItem)">删除</button>
                 </div>
@@ -45,14 +44,16 @@
         </div>
 
         <div class="countdown-control">
-            <button @click="loop = !loop"
-                :style="{'background-color': loop?'red':'white', 'color': loop?'white':'black'}">循环</button>
+            <input x-model="loop"
+                placeholder="循环"
+                type="number"
+                required="required">
             <button @click="startCountdownList(countdownList, loop);">开始</button>
             <button @click="stop(countdownList);">停止</button>
         </div>
 
         <audio id="audio"
-            src="ring.mp3"
+            src="ring.ogg"
             hidden="true"></audio>
 
     </div>
@@ -71,7 +72,7 @@
                 countdown(timeout);
 
             function countdown(interval) {
-                
+
                 timer = setTimeout(() => {
                     const endTime = new Date().getTime();
                     // 偏差值 
@@ -90,12 +91,16 @@
                         }
                         else {
                             clearCompleted(countdownList);
-                            if (loop) {
+                            if ((loop - 1) == -1) {
                                 index = 0;
                                 countdown(timeout - deviation);
                             }
                             else {
-                                return false;
+                                loop--;
+                                if (loop != 0) {
+                                    index = 0;
+                                    countdown(timeout - deviation);
+                                }
                             }
                         }
                     }
