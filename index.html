@@ -152,6 +152,12 @@
             audio.play();
         }
 
+        function stopAudio() {
+            const audio = document.getElementById("audio");
+            audio.currentTime = 0;
+            audio.pause();
+        }
+
         function onInputFileChange() {
             var file = document.getElementById('file').files[0];
             var audio = document.getElementById("audio");
