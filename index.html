@@ -25,6 +25,9 @@
                     required="required">
                 <button
                     @click="if(userInput>0){countdownList.push({time: userInput, completed: 0, color: randomWarmColor(1)});}">添加</button>
+                <input type="file"
+                    id="file"
+                    onchange="onInputFileChange()">
             </form>
         </div>
 
@@ -147,6 +150,14 @@
             const audio = document.getElementById("audio");
             audio.currentTime = 0;
             audio.play();
+        }
+
+        function onInputFileChange() {
+            var file = document.getElementById('file').files[0];
+            var audio = document.getElementById("audio");
+            var url = URL.createObjectURL(file);
+            console.log(url);
+            audio.src = url;
         }
     </script>
 </body>
